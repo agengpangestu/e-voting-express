@@ -4,10 +4,25 @@ const User = prisma.user;
 
 class UserController {
     async Get(req, res, next) {
+        const { page = req.query.page ?? 1, limit = req.query.limit ?? 2 } = req.query;
+        const pageOfNumber = parseInt(page),
+            limitOfNumber = parseInt(limit);
 
-        const user = await prisma.user.findMany()
-        console.log();
-        res.json({ message: `hello user`, data: user })
+        const offset = (pageOfNumber - 1) * limitOfNumber;
+
+        // add pagination, total pages
+        await prisma.user.findMany({
+            take: limitOfNumber,
+            skip: offset,
+        })
+            .then((users) => {
+                // const countPages = User.count();
+
+                // const totalPages = Math.ceil(countPages / limitOfNumber)
+                res.json({ message: "OK", data: users, countPages: countPages, totalPages: totalPages })
+            }).catch((err) => {
+                console.log(err);
+            });
     }
 
     async Post(req, res, next) {
@@ -22,14 +37,35 @@ class UserController {
             workAt: req.body.workAt
         };
 
-        await prisma.user.create({
-            data: body
-        })
-            .then((created) => {
-                console.log(res.json({ data: created }));
-            }).catch((err) => {
-                console.log(err);
-            });
+        await User.findUnique({
+            where: {
+                email: req.body.email
+            }
+        }).then(async (emailExist) => {
+            if (emailExist) return res
+                .status(400)
+                .json({
+                    message: "Email Already Exist",
+                    status: 400
+                })
+
+            await prisma.user.create({
+                data: body
+            })
+                .then((created) => {
+                    return res
+                        .status(200)
+                        .json({
+                            message: "OK",
+                            status: 200
+                        })
+                }).catch((err) => {
+                    console.log(err);
+                });
+        }).catch((err) => {
+            console.log(err);
+        });
+
     }
 
     async GetByID(req, res, next) {
