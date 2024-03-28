@@ -4,26 +4,33 @@ const User = prisma.user;
 
 class UserController {
     async Get(req, res, next) {
-        const { page = req.query.page ?? 1, limit = req.query.limit ?? 2 } = req.query;
+        const { page = req.query.page ?? 1, limit = req.query.limit ?? 6 } = req.query;
+
         const pageOfNumber = parseInt(page),
             limitOfNumber = parseInt(limit);
 
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
-        // add pagination, total pages
         await prisma.user.findMany({
             take: limitOfNumber,
             skip: offset,
         })
-            .then((users) => {
-                // const countPages = User.count();
+            .then(async (users) => {
+                const countPages = await User.count();
 
-                // const totalPages = Math.ceil(countPages / limitOfNumber)
-                res.json({ message: "OK", data: users, countPages: countPages, totalPages: totalPages })
+                const totalPages = Math.ceil(countPages / limitOfNumber);
+
+                res.json({
+                    message: "OK",
+                    page: pageOfNumber,
+                    countPages: countPages,
+                    totalPages: totalPages,
+                    data: users,
+                })
             }).catch((err) => {
                 console.log(err);
             });
-    }
+    };
 
     async Post(req, res, next) {
         const body = {
@@ -66,7 +73,7 @@ class UserController {
             console.log(err);
         });
 
-    }
+    };
 
     async GetByID(req, res, next) {
         const { id } = req.params;
@@ -89,7 +96,7 @@ class UserController {
         }).catch((err) => {
             console.log(err);
         });
-    }
+    };
 
     async Update(req, res, next) {
         const { id } = req.params;
@@ -129,7 +136,7 @@ class UserController {
             }).catch((err) => {
                 console.log(err);
             });
-    }
+    };
 
     async Deleted(req, res, next) {
         const { id } = req.params;
@@ -150,7 +157,7 @@ class UserController {
             }).catch((err) => {
                 console.log(err);
             });
-    }
+    };
 }
 
 
