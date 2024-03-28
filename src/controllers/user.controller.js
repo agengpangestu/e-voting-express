@@ -11,7 +11,7 @@ class UserController {
 
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
-        await prisma.user.findMany({
+        await User.findMany({
             take: limitOfNumber,
             skip: offset,
         })
@@ -56,7 +56,7 @@ class UserController {
                     status: 400
                 })
 
-            await prisma.user.create({
+            await User.create({
                 data: body
             })
                 .then((created) => {
@@ -78,7 +78,7 @@ class UserController {
     async GetByID(req, res, next) {
         const { id } = req.params;
 
-        await prisma.user.findUnique({
+        await User.findUnique({
             where: {
                 id: parseInt(id)
             }
@@ -121,7 +121,7 @@ class UserController {
             workAt: req.body.workAt
         };
 
-        await prisma.user.update({
+        await User.update({
             where: {
                 id: parseInt(id)
             }, data: body
