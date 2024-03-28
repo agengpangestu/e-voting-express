@@ -158,7 +158,7 @@ class UserController {
                 console.log(err);
             });
     };
-}
+};
 
 
 module.exports = new UserController();
