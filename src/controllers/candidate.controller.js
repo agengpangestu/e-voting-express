@@ -18,7 +18,6 @@ class CandidateController {
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
         await Candidate.findMany({
-            // relationLoadStrategy: 'join', //what is this ??? fix okay ?
             include: {
                 User: true
             },
@@ -77,7 +76,7 @@ class CandidateController {
             candidateVisi: req.body.candidateVisi,
             candidateMisi: req.body.candidateMisi,
             candidateAvatar: req.body.candidateAvatar,
-            candidateRole: req.body.candidateRole, // can't created
+            candidateRole: req.body.candidateRole,
             group: req.body.group,
             level: req.body.level,
             createdBy: req.body.createdBy,
