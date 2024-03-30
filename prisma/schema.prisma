@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   Int                    @id @default(autoincrement())
+  username             String
+  password             String
+  email                String                 @unique
+  role                 Role                   @default(PEMILIH)
+  fullName             String
+  address              String?
+  age                  Int
+  workAt               Work
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  Candidate            Candidate[]
+  Election_Schedulling Election_Schedulling[]
+  Vote                 Vote?
+}
+
+model Candidate {
+  candidateID     Int           @id @default(autoincrement())
+  candidateName   String
+  candidateVisi   String?
+  candidateMisi   String?
+  candidateAvatar String
+  candidateRole   CandidateRole
+  group           String? //NAMA partai
+  level           Level
+  User            User          @relation(fields: [createdBy], references: [id])
+  createdBy       Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  Vote            Vote?
+}
+
+model Election_Schedulling {
+  electionID   Int      @id @default(autoincrement())
+  electionName String
+  electionDesc String?
+  User         User     @relation(fields: [createdBy], references: [id])
+  createdBy    Int
+  startedAt    DateTime
+  endedAt      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Vote         Vote?
+}
+
+model Vote {
+  voteID           Int                  @id @default(autoincrement())
+  userID           Int                  @unique
+  candidateID      Int                  @unique
+  electionID       Int                  @unique
+  User             User                 @relation(fields: [userID], references: [id])
+  Candidate        Candidate            @relation(fields: [candidateID], references: [candidateID])
+  Election_Schedul Election_Schedulling @relation(fields: [electionID], references: [electionID])
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+enum Role {
+  ADMIN
+  PEMILIH
+}
+
+enum Work {
+  PELAJAR
+  MAHASISWA
+  SWASTA
+}
+
+enum Level {
+  ORGANISASI
+  SEKOLAH
+  DESA
+}
+
+enum CandidateRole {
+  KETUA
+  WAKIL_KETUA
+  NONE
+  PERORANGAN
+}
