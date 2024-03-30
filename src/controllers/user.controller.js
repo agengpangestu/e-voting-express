@@ -4,7 +4,12 @@ const User = prisma.user;
 
 class UserController {
     async Get(req, res, next) {
-        const { page = req.query.page ?? 1, limit = req.query.limit ?? 6 } = req.query;
+        const {
+            page = req.query.page ?? 1,
+            limit = req.query.limit ?? 6,
+            sortByCreated = req.query.sortByCreated,
+            sortByName = req.query.sortByName,
+        } = req.query;
 
         const pageOfNumber = parseInt(page),
             limitOfNumber = parseInt(limit);
@@ -12,6 +17,10 @@ class UserController {
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
         await User.findMany({
+            orderBy: {
+                createdAt: sortByCreated,
+                fullName: sortByName,
+            },
             take: limitOfNumber,
             skip: offset,
         })
