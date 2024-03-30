@@ -9,6 +9,7 @@ class UserController {
             limit = req.query.limit ?? 6,
             sortByCreated = req.query.sortByCreated,
             sortByName = req.query.sortByName,
+            role = req.query.role
         } = req.query;
 
         const pageOfNumber = parseInt(page),
@@ -16,29 +17,36 @@ class UserController {
 
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
-        await User.findMany({
-            orderBy: {
-                createdAt: sortByCreated,
-                fullName: sortByName,
-            },
-            take: limitOfNumber,
-            skip: offset,
-        })
-            .then(async (users) => {
-                const countPages = await User.count();
+        (role !== "PEMILIH" && role !== "ADMIN")
 
-                const totalPages = Math.ceil(countPages / limitOfNumber);
+            ? res.status(400).json({ message: "Roles that don't exist", status: 400 })
 
-                res.json({
-                    message: "OK",
-                    page: pageOfNumber,
-                    countPages: countPages,
-                    totalPages: totalPages,
-                    data: users,
-                })
-            }).catch((err) => {
-                console.log(err);
-            });
+            : await User.findMany({
+                where: {
+                    role: role
+                },
+                orderBy: {
+                    createdAt: sortByCreated,
+                    fullName: sortByName,
+                },
+                take: limitOfNumber,
+                skip: offset,
+            })
+                .then(async (users) => {
+                    const countPages = await User.count();
+
+                    const totalPages = Math.ceil(countPages / limitOfNumber);
+
+                    res.json({
+                        message: "OK",
+                        page: pageOfNumber,
+                        countPages: countPages,
+                        totalPages: totalPages,
+                        data: users,
+                    })
+                }).catch((err) => {
+                    console.log(err);
+                });
     };
 
     async Post(req, res, next) {
