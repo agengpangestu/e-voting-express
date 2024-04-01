@@ -81,49 +81,49 @@ class CandidateController {
             level: req.body.level,
             createdBy: req.body.createdBy,
         };
-        const userID = req.body.createdBy;
+        // const userID = req.body.createdBy;
 
-        const checkUser = await User.findUnique({ where: { id: userID } });
+        // const checkUser = await User.findUnique({ where: { id: userID } });
 
-        // check who create a candidate, if role ADMIN let him cook XD
-        (!checkUser)
+        // // check who create a candidate, if role ADMIN let him cook XD
+        // (!checkUser)
 
-            // if user not found
-            ? res
-                .status(404)
+        //     // if user not found
+        //     ? res
+        //         .status(404)
+        //         .json({
+        //             message: "User Not Found",
+        //             status: 404
+        //         })
+
+        //     // if user role !== "ADMIN"
+        //     : (checkUser.role !== "ADMIN")
+        //         ? res
+        //             .status(400)
+        //             .json({
+        //                 message: "You dont have access",
+        //                 status: 400
+        //             })
+
+        //         // else, user role === ADMIN
+        // :
+        await Candidate.create({
+            data: body
+        }).then((data) => {
+            if (data) return res
+                .status(200)
                 .json({
-                    message: "User Not Found",
-                    status: 404
+                    message: "OK",
+                    status: 200,
+                    data: data
                 })
-
-            // if user role !== "ADMIN"
-            : (checkUser.role !== "ADMIN")
-                ? res
-                    .status(400)
-                    .json({
-                        message: "You dont have access",
-                        status: 400
-                    })
-
-                // else, user role === ADMIN
-                : await Candidate.create({
-                    data: body
-                }).then((data) => {
-                    if (data) return res
-                        .status(200)
-                        .json({
-                            message: "OK",
-                            status: 200,
-                            data: data
-                        })
-                }).catch((err) => {
-                    next(err);
-                });
+        }).catch((err) => {
+            next(err);
+        });
     };
 
     async Update(req, res, next) {
         const { id } = req.params;
-        const userID = req.body.createdBy;
 
         const checkCandidate = await Candidate.findUnique({
             where: {
