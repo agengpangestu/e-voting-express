@@ -41,7 +41,7 @@ class CandidateController {
                     data: users,
                 })
             }).catch((err) => {
-                console.log(err);
+                next(err);
             });
     };
 
@@ -66,11 +66,11 @@ class CandidateController {
                 })
 
         }).catch((err) => {
-            console.log(err);
+            next(err);
         });
     }
 
-    async Post(req, res, next) { // cant post new candidate
+    async Post(req, res, next) {
         const body = {
             candidateName: req.body.candidateName,
             candidateVisi: req.body.candidateVisi,
@@ -81,25 +81,49 @@ class CandidateController {
             level: req.body.level,
             createdBy: req.body.createdBy,
         };
+        const userID = req.body.createdBy;
 
-        await Candidate.create({
-            data: body
-        }).then((data) => {
-            if (data) return res
-                .status(200)
+        const checkUser = await User.findUnique({ where: { id: userID } });
+
+        // check who create a candidate, if role ADMIN let him cook XD
+        (!checkUser)
+
+            // if user not found
+            ? res
+                .status(404)
                 .json({
-                    message: "OK",
-                    status: 200,
-                    data: data
+                    message: "User Not Found",
+                    status: 404
                 })
-        }).catch((err) => {
-            console.log(err);
-            return res.json({ error: err })
-        });
+
+            // if user role !== "ADMIN"
+            : (checkUser.role !== "ADMIN")
+                ? res
+                    .status(400)
+                    .json({
+                        message: "You dont have access",
+                        status: 400
+                    })
+
+                // else, user role === ADMIN
+                : await Candidate.create({
+                    data: body
+                }).then((data) => {
+                    if (data) return res
+                        .status(200)
+                        .json({
+                            message: "OK",
+                            status: 200,
+                            data: data
+                        })
+                }).catch((err) => {
+                    next(err);
+                });
     };
 
     async Update(req, res, next) {
         const { id } = req.params;
+        const userID = req.body.createdBy;
 
         const checkCandidate = await Candidate.findUnique({
             where: {
@@ -137,7 +161,7 @@ class CandidateController {
                     data: updated
                 });
         }).catch((err) => {
-            console.log(err);
+            next(err);
         });
     };
 
@@ -164,8 +188,7 @@ class CandidateController {
                         ststus: 200
                     })
             }).catch((err) => {
-                console.log(err);
-                res.json({ error: err })
+                next(err);
             });
     }
 };
