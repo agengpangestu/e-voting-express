@@ -4,10 +4,12 @@ const router = express.Router();
 const UserRouter = require('./user.route');
 const CandidateRouter = require('./candidate.route');
 const ScheduleRouter = require('./schedule.route');
+const VoteRouter = require('./vote.route');
 
 router.use('/users', UserRouter);
 router.use('/candidates', CandidateRouter);
 router.use('/schedules', ScheduleRouter);
+router.use('/votes', VoteRouter);
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
