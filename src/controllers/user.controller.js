@@ -17,11 +17,12 @@ class UserController {
 
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
-        (role !== "PEMILIH" && role !== "ADMIN")
+        // (role !== "PEMILIH" && role !== "ADMIN")
 
-            ? res.status(400).json({ message: "Roles that don't exist", status: 400 })
+            // ? res.status(400).json({ message: "Roles that don't exist", status: 400 })
 
-            : await User.findMany({
+            // : 
+            await User.findMany({
                 where: {
                     role: role
                 },
@@ -45,7 +46,7 @@ class UserController {
                         data: users,
                     })
                 }).catch((err) => {
-                    console.log(err);
+                    next(err);
                 });
     };
 
@@ -87,7 +88,7 @@ class UserController {
                     console.log(err);
                 });
         }).catch((err) => {
-            console.log(err);
+            next(err);
         });
 
     };
@@ -111,7 +112,7 @@ class UserController {
                 .status(200)
                 .json({ message: "OK", data: result });
         }).catch((err) => {
-            console.log(err);
+            next(err);
         });
     };
 
@@ -151,7 +152,7 @@ class UserController {
                         message: "OK", data: updated
                     });
             }).catch((err) => {
-                console.log(err);
+                next(err);
             });
     };
 
@@ -172,7 +173,7 @@ class UserController {
             .then((result) => {
                 return res.status(200).json({ message: "OK", data: result })
             }).catch((err) => {
-                console.log(err);
+                next(err);
             });
     };
 };
