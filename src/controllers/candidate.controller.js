@@ -32,12 +32,14 @@ class CandidateController {
                 const countPages = await Candidate.count();
 
                 const totalPages = Math.ceil(countPages / limitOfNumber);
+                const currentPage = page ? +page : 0;
 
                 res.json({
                     message: "OK",
                     page: pageOfNumber,
                     countPages: countPages,
                     totalPages: totalPages,
+                    currentPage: currentPage,   
                     data: users,
                 })
             }).catch((err) => {
