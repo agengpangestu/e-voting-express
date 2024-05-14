@@ -19,77 +19,102 @@ class UserController {
 
         // (role !== "PEMILIH" && role !== "ADMIN")
 
-            // ? res.status(400).json({ message: "Roles that don't exist", status: 400 })
+        // ? res.status(400).json({ message: "Roles that don't exist", status: 400 })
 
-            // : 
-            await User.findMany({
-                where: {
-                    role: role
-                },
-                orderBy: {
-                    createdAt: sortByCreated,
-                    fullName: sortByName,
-                },
-                take: limitOfNumber,
-                skip: offset,
-            })
-                .then(async (users) => {
-                    const countPages = await User.count();
-
-                    const totalPages = Math.ceil(countPages / limitOfNumber);
-
-                    res.json({
-                        message: "OK",
-                        page: pageOfNumber,
-                        countPages: countPages,
-                        totalPages: totalPages,
-                        data: users,
-                    })
-                }).catch((err) => {
-                    next(err);
+        // : 
+        await User.findMany({
+            where: {
+                role: role
+            },
+            orderBy: {
+                createdAt: sortByCreated,
+                fullName: sortByName,
+            },
+            take: limitOfNumber,
+            skip: offset,
+        })
+            .then(async (users) => {
+                const countAllPages = await User.count();
+                const countWithRole = await User.count({
+                    where: {
+                        role: role
+                    }
                 });
+
+                const totalPages = Math.ceil(countAllPages / limitOfNumber);
+                const totalPagesROLE = Math.ceil(countWithRole / limitOfNumber);
+                const currentPage = page ? +page : 0;
+
+                res.json({
+                    message: "OK",
+                    currentPage: currentPage,
+                    countAllPages: countAllPages,
+                    countROLE: countWithRole,
+                    page: pageOfNumber,
+                    totalPages: totalPages,
+                    totalPagesROLE: totalPagesROLE,
+                    data: users,
+                })
+            }).catch((err) => {
+                next(err);
+            });
     };
 
     async Post(req, res, next) {
+        const dirPath = `${req.protocol}://${req.get('host')}/public/images/identityCards/${req.file === undefined ? "" : req.file.filename}`;
         const body = {
             username: req.body.username,
             password: req.body.password,
             email: req.body.email,
             role: req.body.role,
             fullName: req.body.fullName,
-            address: req.body.address,
             age: req.body.age,
-            workAt: req.body.workAt
+            identityNumber: req.body.identityNumber,
+            identityPicture: dirPath
         };
 
-        await User.findUnique({
-            where: {
-                email: req.body.email
-            }
-        }).then(async (emailExist) => {
-            if (emailExist) return res
-                .status(400)
-                .json({
-                    message: "Email Already Exist",
-                    status: 400
-                })
+        await User.create({
+            data: body
+        })
+            .then((created) => {
+                return res
+                    .status(200)
+                    .json({
+                        message: "OK",
+                        status: 200
+                    })
+            }).catch((err) => {
+                next(err);
+            });
 
-            await User.create({
-                data: body
-            })
-                .then((created) => {
-                    return res
-                        .status(200)
-                        .json({
-                            message: "OK",
-                            status: 200
-                        })
-                }).catch((err) => {
-                    console.log(err);
-                });
-        }).catch((err) => {
-            next(err);
-        });
+        // await User.findUnique({
+        //     where: {
+        //         email: req.body.email
+        //     }
+        // }).then(async (emailExist) => {
+        //     if (emailExist) return res
+        //         .status(400)
+        //         .json({
+        //             message: "Email Already Exist",
+        //             status: 400
+        //         })
+
+        //     await User.create({
+        //         data: body
+        //     })
+        //         .then((created) => {
+        //             return res
+        //                 .status(200)
+        //                 .json({
+        //                     message: "OK",
+        //                     status: 200
+        //                 })
+        //         }).catch((err) => {
+        //             console.log(err);
+        //         });
+        // }).catch((err) => {
+        //     next(err);
+        // });
 
     };
 
@@ -134,9 +159,9 @@ class UserController {
             email: req.body.email,
             role: req.body.role,
             fullName: req.body.fullName,
-            address: req.body.address,
             age: req.body.age,
-            workAt: req.body.workAt
+            identityNumber: req.body.identityNumber,
+            identityPicture: req.body.identityPicture
         };
 
         await User.update({
