@@ -1,6 +1,7 @@
 const prisma = require('../database/prisma');
 
 const User = prisma.user;
+const Election = prisma.election_Schedulling;
 
 const CandidateBodyRequired = (req, res, next) => {
     const { candidateRole, level, createdBy } = req.body;
@@ -64,4 +65,18 @@ const CheckWhoCreated = async (req, res, next) => {
     })
 };
 
-module.exports = { CandidateBodyRequired, CheckWhoCreated };
+const CheckSchedule = async (req, res, next) => {
+    const id = req.body.electionID;
+
+    await Election.findUnique({
+        where: {
+            electionID: id
+        }
+    }).then((resultTheID) => {
+        (!resultTheID)
+            ? res.status(404).json({ message: "Schedule Not Found", status: 404 })
+            : next();
+    })
+}
+
+module.exports = { CandidateBodyRequired, CheckWhoCreated, CheckSchedule };
