@@ -27,15 +27,12 @@ const createdBulk = async (howMany) => {
 };
 
 router.get('/', VoteController.Get);
-router.get('/:id/schedule', VoteController.GetByID);
 router.post('/post',
     VoteHandler.CheckCandidateWhenVoted,
     VoteHandler.CheckElectionWhenVoted,
     VoteHandler.checkUserWhenVoted,
     VoteHandler.CheckUniqueVoted,
     VoteController.Post);
-router.patch('/:id/schedule-update', VoteController.Update);
-router.delete('/:id/schedule-delete', VoteController.Deleted);
 
 router.post('/vote-bulk', async (req, res, next) => {
     try {
