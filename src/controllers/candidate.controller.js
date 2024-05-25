@@ -9,7 +9,8 @@ class CandidateController {
             page = req.query.page ?? 1,
             limit = req.query.limit ?? 6,
             sortByCreated = req.query.sortByCreated,
-            sortByName = req.query.sortByName
+            sortByName = req.query.sortByName,
+            level = req.query.level,
         } = req.query;
 
         const pageOfNumber = parseInt(page),
@@ -18,6 +19,9 @@ class CandidateController {
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
         await Candidate.findMany({
+            where: {
+                level: level
+            },
             include: {
                 User: true
             },
@@ -30,16 +34,24 @@ class CandidateController {
         })
             .then(async (users) => {
                 const countPages = await Candidate.count();
+                const countWithLevel = await Candidate.count({
+                    where: {
+                        level: level
+                    }
+                });
 
                 const totalPages = Math.ceil(countPages / limitOfNumber);
+                const totalPagesLEVEL = Math.ceil(countWithLevel / limitOfNumber);
                 const currentPage = page ? +page : 0;
 
                 res.json({
                     message: "OK",
                     page: pageOfNumber,
                     countPages: countPages,
+                    countLevel: countWithLevel,
                     totalPages: totalPages,
-                    currentPage: currentPage,   
+                    totalPagesLEVEL: totalPagesLEVEL,
+                    currentPage: currentPage,
                     data: users,
                 })
             }).catch((err) => {
@@ -82,6 +94,7 @@ class CandidateController {
             group: req.body.group,
             level: req.body.level,
             createdBy: req.body.createdBy,
+            electionID: req.body.electionID,
         };
         // const userID = req.body.createdBy;
 
@@ -149,6 +162,7 @@ class CandidateController {
             group: req.body.group,
             level: req.body.level,
             createdBy: req.body.createdBy,
+            electionID: req.body.electionID,
         };
 
         await Candidate.update({
