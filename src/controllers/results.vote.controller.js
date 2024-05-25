@@ -43,6 +43,7 @@ class ResultsVote {
             const formatedResult = result.map(data => ({
                 id: data.candidateID,
                 name: data.candidateName,
+                role: data.candidateRole,
                 group: data.group,
                 level: data.level,
                 result_vote: data._count.Vote
@@ -74,6 +75,7 @@ class ResultsVote {
 
 //             const formated = result.map(data => ({
 //                 name: data.candidateName,
+//                 role: data.candidateRole,
 //                 group: data.group,
 //                 level: data.level,
 //                 election_id: data.electionID,
