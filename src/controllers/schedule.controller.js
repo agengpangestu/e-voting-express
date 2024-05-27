@@ -79,10 +79,10 @@ class ElectionScheduleController {
             data: body
         }).then((created) => {
             return res
-                .status(200)
+                .status(201)
                 .json({
                     message: "OK",
-                    status: 200,
+                    status: 201,
                     data: created
                 });
         }).catch((err) => {
