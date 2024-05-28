@@ -3,6 +3,14 @@ const multer = require("multer");
 
 const ErrorHandler = (err, req, res, next) => {
 
+    if (err instanceof TypeError) {
+        return res.json({
+            name: err.name,
+            message: err.message,
+            stack: err.stack
+        });
+    }
+
     if (err instanceof Prisma.PrismaClientValidationError) {
         return res.status(400).json({
             name: err.name,
