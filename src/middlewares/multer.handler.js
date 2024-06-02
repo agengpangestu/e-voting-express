@@ -35,7 +35,7 @@ exports.uploadIdentityCards = multer({
             return cb(null, false);
         }
     }
-});
+});   
 
 exports.uploadIdentityPemilih = multer({
     storage: storageIdentityPemilih,
