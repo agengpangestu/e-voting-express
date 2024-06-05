@@ -4,8 +4,14 @@ const User = prisma.user;
 const Election = prisma.election_Schedulling;
 
 const CandidateBodyRequired = (req, res, next) => {
-    const { candidateRole, level, createdBy } = req.body;
+    const { candidateRole, level, createdBy, candidateName, electionID } = req.body;
 
+    if (!candidateName) return res
+        .status(400)
+        .json({
+            message: "Please fill Candidate Name",
+            status: 400
+        });
     if (!candidateRole) return res
         .status(400)
         .json({
@@ -30,10 +36,16 @@ const CandidateBodyRequired = (req, res, next) => {
             message: "Level is not available",
             status: 400
         });
-    if (!createdBy) return res
+    if (createdBy === 'undefined' || createdBy === null || createdBy === 0) return res
         .status(400)
         .json({
             message: "Please fill User",
+            status: 400
+        });
+    if (electionID === 'undefined' || electionID === null || electionID === 0) return res
+        .status(400)
+        .json({
+            message: "Please fill Election",
             status: 400
         })
 
@@ -42,11 +54,11 @@ const CandidateBodyRequired = (req, res, next) => {
 };
 
 const CheckWhoCreated = async (req, res, next) => {
-    const userID = req.body.createdBy;
+    const createdBy = req.body.createdBy;
 
     await User.findUnique({
         where: {
-            id: userID
+            id: parseInt(createdBy)
         }
     }).then((aUser) => {
         (!aUser)
@@ -70,7 +82,7 @@ const CheckSchedule = async (req, res, next) => {
 
     await Election.findUnique({
         where: {
-            electionID: id
+            electionID: parseInt(id)
         }
     }).then((resultTheID) => {
         (!resultTheID)
