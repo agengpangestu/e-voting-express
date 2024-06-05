@@ -2,6 +2,7 @@ const { faker } = require('@faker-js/faker');
 const CandidateController = require('../controllers/candidate.controller');
 const CandidateHandler = require('../middlewares/candidate.handler');
 const prisma = require('../database/prisma');
+const { uploadAvatarCandidate } = require('../middlewares/multer.handler');
 
 const router = require('express').Router();
 
@@ -44,12 +45,14 @@ router.get('/', CandidateController.Get);
 router.get('/:id/candidate', CandidateController.GetByID);
 
 router.post('/post',
+    uploadAvatarCandidate.single('candidateAvatar'),
+    CandidateHandler.CandidateBodyRequired,
     CandidateHandler.CheckWhoCreated,
     CandidateHandler.CheckSchedule,
-    CandidateHandler.CandidateBodyRequired,
     CandidateController.Post);
 
 router.patch('/:id/candidate-update',
+    uploadAvatarCandidate.single('candidateAvatar'),
     CandidateHandler.CheckWhoCreated,
     CandidateHandler.CheckSchedule,
     CandidateHandler.CandidateBodyRequired,
