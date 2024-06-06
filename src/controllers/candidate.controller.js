@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const prisma = require("../database/prisma");
 
 const Candidate = prisma.candidate;
@@ -118,6 +120,8 @@ class CandidateController {
         const { id } = req.params;
         const dirPath = `${req.protocol}://${req.get('host')}/public/images/candidate/${req.file === undefined ? "" : req.file.filename}`;
 
+        let candidateAvatar = null;
+
         const checkCandidate = await Candidate.findUnique({
             where: {
                 candidateID: parseInt(id)
@@ -131,11 +135,21 @@ class CandidateController {
                 status: 404
             });
 
+        if (req.file) {
+            candidateAvatar = dirPath;
+            const rmvFromDir = checkCandidate.candidateAvatar.replace(`${req.protocol}://${req.get('host')}/`, "");
+            fs.unlink(rmvFromDir, async (err) => {
+                console.log(err);
+            })
+        } else {
+            candidateAvatar = checkCandidate.candidateAvatar;
+        }
+
         const body = {
             candidateName: req.body.candidateName,
             candidateVisi: req.body.candidateVisi,
             candidateMisi: req.body.candidateMisi,
-            candidateAvatar: dirPath,
+            candidateAvatar: candidateAvatar,
             candidateRole: req.body.candidateRole,
             group: req.body.group,
             level: req.body.level,
@@ -163,6 +177,7 @@ class CandidateController {
         const { id } = req.params;
 
         const checkCandidate = await Candidate.findUnique({ where: { candidateID: parseInt(id) } });
+        const rmvFromDir = checkCandidate.candidateAvatar.replace(`${req.protocol}://${req.get('host')}/`, "")
 
         if (!checkCandidate) return res
             .status(404)
@@ -170,7 +185,10 @@ class CandidateController {
                 message: "Candidate Not Found",
                 status: 404
             });
-
+        else
+            fs.unlink(rmvFromDir, async (err) => {
+                console.log(err);
+            })
         return await Candidate.delete({
             where: { candidateID: parseInt(id) }
         })
