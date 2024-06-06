@@ -65,7 +65,8 @@ class CandidateController {
         await Candidate.findUnique({
             where: {
                 candidateID: parseInt(id)
-            }
+            },
+            include: { Election: true, User: true }
         }).then((candidate) => {
             !candidate
                 ?
@@ -85,51 +86,27 @@ class CandidateController {
     }
 
     async Post(req, res, next) {
+        const dirPath = `${req.protocol}://${req.get('host')}/public/images/candidate/${req.file === undefined ? "" : req.file.filename}`;
         const body = {
             candidateName: req.body.candidateName,
             candidateVisi: req.body.candidateVisi,
             candidateMisi: req.body.candidateMisi,
-            candidateAvatar: req.body.candidateAvatar,
+            candidateAvatar: dirPath,
             candidateRole: req.body.candidateRole,
             group: req.body.group,
             level: req.body.level,
-            createdBy: req.body.createdBy,
-            electionID: req.body.electionID,
+            createdBy: parseInt(req.body.createdBy),
+            electionID: parseInt(req.body.electionID),
         };
-        // const userID = req.body.createdBy;
 
-        // const checkUser = await User.findUnique({ where: { id: userID } });
-
-        // // check who create a candidate, if role ADMIN let him cook XD
-        // (!checkUser)
-
-        //     // if user not found
-        //     ? res
-        //         .status(404)
-        //         .json({
-        //             message: "User Not Found",
-        //             status: 404
-        //         })
-
-        //     // if user role !== "ADMIN"
-        //     : (checkUser.role !== "ADMIN")
-        //         ? res
-        //             .status(400)
-        //             .json({
-        //                 message: "You dont have access",
-        //                 status: 400
-        //             })
-
-        //         // else, user role === ADMIN
-        // :
         await Candidate.create({
             data: body
         }).then((data) => {
             if (data) return res
-                .status(200)
+                .status(201)
                 .json({
                     message: "OK",
-                    status: 200,
+                    status: 201,
                     data: data
                 })
         }).catch((err) => {
@@ -161,8 +138,8 @@ class CandidateController {
             candidateRole: req.body.candidateRole,
             group: req.body.group,
             level: req.body.level,
-            createdBy: req.body.createdBy,
-            electionID: req.body.electionID,
+            createdBy: parseInt(req.body.createdBy),
+            electionID: parseInt(req.body.electionID),
         };
 
         await Candidate.update({
@@ -185,6 +162,7 @@ class CandidateController {
         const { id } = req.params;
 
         const checkCandidate = await Candidate.findUnique({ where: { candidateID: parseInt(id) } });
+        console.log(checkCandidate);
 
         if (!checkCandidate) return res
             .status(404)
