@@ -116,6 +116,7 @@ class CandidateController {
 
     async Update(req, res, next) {
         const { id } = req.params;
+        const dirPath = `${req.protocol}://${req.get('host')}/public/images/candidate/${req.file === undefined ? "" : req.file.filename}`;
 
         const checkCandidate = await Candidate.findUnique({
             where: {
@@ -134,7 +135,7 @@ class CandidateController {
             candidateName: req.body.candidateName,
             candidateVisi: req.body.candidateVisi,
             candidateMisi: req.body.candidateMisi,
-            candidateAvatar: req.body.candidateAvatar,
+            candidateAvatar: dirPath,
             candidateRole: req.body.candidateRole,
             group: req.body.group,
             level: req.body.level,
@@ -162,7 +163,6 @@ class CandidateController {
         const { id } = req.params;
 
         const checkCandidate = await Candidate.findUnique({ where: { candidateID: parseInt(id) } });
-        console.log(checkCandidate);
 
         if (!checkCandidate) return res
             .status(404)
