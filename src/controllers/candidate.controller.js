@@ -107,7 +107,7 @@ class CandidateController {
             if (data) return res
                 .status(201)
                 .json({
-                    message: "OK",
+                    message: "Created",
                     status: 201,
                     data: data
                 })
