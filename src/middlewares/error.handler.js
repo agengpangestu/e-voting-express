@@ -2,6 +2,7 @@ const { Prisma } = require("@prisma/client");
 const multer = require("multer");
 
 const ErrorHandler = (err, req, res, next) => {
+    console.log(err);
 
     if (err instanceof TypeError) {
         return res.json({
@@ -50,15 +51,15 @@ const ErrorHandler = (err, req, res, next) => {
             stack: err.stack
         })
 
-    if (err instanceof multer.MulterError) {
-        return res
-            .status(err.code)
-            .json({
-                name: err.name,
-                message: err.message,
-                stack: err.stack
-            })
-    }
+    // if (err instanceof multer.MulterError) {
+    //     return res
+    //         .status(err.code)
+    //         .json({
+    //             name: err.name,
+    //             message: err.message,
+    //             stack: err.stack
+    //         })
+    // }
 
     const statusCode = err.statusCode || 500;
     const errMsg = err.messsage || "Something went wrong";
