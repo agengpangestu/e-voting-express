@@ -12,8 +12,14 @@ class CandidateController {
             limit = req.query.limit ?? 6,
             sortByCreated = req.query.sortByCreated,
             sortByName = req.query.sortByName,
-            level = req.query.level,
         } = req.query;
+
+        const query = {};
+
+        if (parseInt(req.query.electionID))
+            query.electionID = parseInt(req.query.electionID);
+        if (req.query.level)
+            query.level = req.query.level;
 
         const pageOfNumber = parseInt(page),
             limitOfNumber = parseInt(limit);
@@ -21,11 +27,10 @@ class CandidateController {
         const offset = (pageOfNumber - 1) * limitOfNumber;
 
         await Candidate.findMany({
-            where: {
-                level: level
-            },
+            where: query,
             include: {
-                User: true
+                User: true,
+                Election: true
             },
             orderBy: {
                 createdAt: sortByCreated,
@@ -35,24 +40,28 @@ class CandidateController {
             skip: offset,
         })
             .then(async (users) => {
-                const countPages = await Candidate.count();
-                const countWithLevel = await Candidate.count({
-                    where: {
-                        level: level
-                    }
-                });
+                const countPages = await Candidate.count(),
+                    countWithLevel = await Candidate.count({
+                        where: query
+                    }),
+                    countWithElection = await Candidate.count({
+                        where: query
+                    });
 
-                const totalPages = Math.ceil(countPages / limitOfNumber);
-                const totalPagesLEVEL = Math.ceil(countWithLevel / limitOfNumber);
-                const currentPage = page ? +page : 0;
+                const totalPages = Math.ceil(countPages / limitOfNumber),
+                    totalPagesLEVEL = Math.ceil(countWithLevel / limitOfNumber),
+                    totalPagesElection = Math.ceil(countWithElection / limitOfNumber),
+                    currentPage = page ? +page : 0;
 
                 res.json({
                     message: "OK",
                     page: pageOfNumber,
                     countPages: countPages,
                     countLevel: countWithLevel,
+                    countWithElection: countWithElection,
                     totalPages: totalPages,
                     totalPagesLEVEL: totalPagesLEVEL,
+                    totalPagesElection: totalPagesElection,
                     currentPage: currentPage,
                     data: users,
                 })
@@ -186,10 +195,10 @@ class CandidateController {
                 status: 404
             });
         else
-            fs.unlink(rmvFromDir, async (err) => {
+            fs.unlink(rmvFromDir, (err) => {
                 console.log(err);
             })
-        return await Candidate.delete({
+        await Candidate.delete({
             where: { candidateID: parseInt(id) }
         })
             .then((deletedCandidate) => {
