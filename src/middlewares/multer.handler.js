@@ -36,38 +36,43 @@ const storageCandidate = multer.diskStorage({
     }
 });
 
-exports.uploadIdentityCards = multer({
+const uploadIdentityCards = multer({
     storage: storageIdentityCards,
     limits: { fileSize: maxSize },
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
             return cb(null, true)
         } else {
-            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."))
+            cb(null, false);
+            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."), false)
         }
     }
 });
 
-exports.uploadIdentityPemilih = multer({
+const uploadIdentityPemilih = multer({
     storage: storageIdentityPemilih,
     limits: { fieldSize: maxSize },
     fileFilter: (req, file, cb) => {
         if (file.mimetype == 'image/png' || file.mimetype == 'image/jpg' || file.mimetype == 'image/jpeg') {
             return cb(null, true);
         } else {
-            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."));
+            cb(null, false);
+            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."), false);
         }
     }
 });
 
-exports.uploadAvatarCandidate = multer({
+const uploadAvatarCandidate = multer({
     storage: storageCandidate,
     limits: { fieldSize: maxSize },
     fileFilter: (req, file, cb) => {
         if (file.mimetype == 'image/png' || file.mimetype == 'image/jpg' || file.mimetype == 'image/jpeg') {
             return cb(null, true);
         } else {
-            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."))
+            cb(null, false);
+            return cb(new Error("Image must be .png/.jpg/.jpeg and have max size of 2 Mb."), false)
         }
     }
 });
+
+module.exports = { uploadIdentityCards, uploadIdentityPemilih, uploadAvatarCandidate }
