@@ -41,6 +41,7 @@ const createRandom = async (count) => {
 };
 
 router.get('/', CandidateController.Get);
+router.get('/group', CandidateController.GetByGroup);
 
 router.get('/:id/candidate', CandidateController.GetByID);
 
