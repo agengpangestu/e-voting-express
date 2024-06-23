@@ -51,15 +51,16 @@ const ErrorHandler = (err, req, res, next) => {
             stack: err.stack
         })
 
-    // if (err instanceof multer.MulterError) {
-    //     return res
-    //         .status(err.code)
-    //         .json({
-    //             name: err.name,
-    //             message: err.message,
-    //             stack: err.stack
-    //         })
-    // }
+        //this for catch error multer
+    if (err) {
+        return res
+            .status(400)
+            .json({
+                name: err.name,
+                message: err.message,
+                stack: err.stack
+            })
+    }
 
     const statusCode = err.statusCode || 500;
     const errMsg = err.messsage || "Something went wrong";
