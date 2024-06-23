@@ -51,14 +51,42 @@ cron.schedule('*/1 * * * *', async (req, res, next) => {
 
 class ElectionScheduleController {
     async Get(req, res, next) {
-        await ElectionSchedule.findMany()
-            .then((result) => {
+
+        const {
+            page = req.query.page ?? 1,
+            limit = req.query.limit ?? 8,
+            sortByCreated = req.query.sortByCreated,
+            status = req.query.status
+        } = req.query;
+
+        const pageOfNumber = parseInt(page),
+            limitOfNumber = parseInt(limit),
+            offset = (pageOfNumber - 1) * limitOfNumber;
+
+        await ElectionSchedule.findMany({
+            where: { status: status },
+            orderBy: {
+                createdAt: sortByCreated
+            },
+            take: limitOfNumber,
+            skip: offset
+        })
+            .then(async (result) => {
+
+                const countPages = await ElectionSchedule.count();
+
+                const totalPages = Math.ceil(countPages / limitOfNumber),
+                    currentPage = page ? +page : 0;
 
                 return res
                     .status(200)
                     .json({
                         message: "OK",
-                        data: result
+                        data: result,
+                        page: pageOfNumber,
+                        countPages: countPages,
+                        totalPages: totalPages,
+                        currentPage: currentPage
                     });
             }).catch((err) => {
                 next(err);
@@ -69,7 +97,7 @@ class ElectionScheduleController {
         const body = {
             electionName: req.body.electionName,
             electionDesc: req.body.electionDesc,
-            createdBy: req.body.createdBy,
+            createdBy: parseInt(req.body.createdBy),
             status: req.body.status,
             startedAt: req.body.startedAt,
             endedAt: req.body.endedAt,
@@ -133,7 +161,6 @@ class ElectionScheduleController {
         const body = {
             electionName: req.body.electionName,
             electionDesc: req.body.electionDesc,
-            createdBy: req.body.createdBy,
             status: req.body.status,
             startedAt: req.body.startedAt,
             endedAt: req.body.endedAt,
@@ -141,7 +168,7 @@ class ElectionScheduleController {
 
         await ElectionSchedule.update({
             where: {
-                candidateID: parseInt(id)
+                electionID: parseInt(id)
             }, data: body
         }).then((updated) => {
             if (updated) return res
