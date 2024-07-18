@@ -6,6 +6,53 @@ const Candidate = prisma.candidate;
 const User = prisma.user;
 
 class CandidateController {
+    async GetByGroup(req, res, next) {
+
+        const query = {};
+        const { role = req.query.role } = req.query;
+
+        if (parseInt(req.query.electionID))
+            query.electionID = parseInt(req.query.electionID);
+        if (req.query.group)
+            query.group = req.query.group;
+
+        await Candidate.findMany({
+            where: query,
+            orderBy: {
+                candidateRole: role
+            }
+        })
+            .then((result) => {
+
+                const grouped = result.reduce((acc, candidate) => {
+                    if (!acc[candidate.group])
+                        acc[candidate.group] = { KETUA: [], WAKIL_KETUA: [], DATA: [] };
+                    // if (!acc[candidate.group])
+                    //     acc[candidate.group] = { KETUA: [], WAKIL_KETUA: [] };
+                    if (candidate.candidateRole === 'KETUA' || candidate.candidateRole === 'WAKIL_KETUA') {
+
+                        acc[candidate.group].DATA.push(candidate);
+                    }
+                    // else if (candidate.candidateRole === 'WAKIL_KETUA') {
+                    //     acc[candidate.group].WAKIL_KETUA.push(candidate)
+                    // }
+
+                    return acc;
+                }, {});
+                // console.log(JSON.stringify(grouped));
+                console.log(grouped);
+
+                res.status(200).json({
+                    message: "OK",
+                    status: 200,
+                    data: grouped
+                });
+
+            }).catch((err) => {
+                next(err);
+            });
+    };
+
     async Get(req, res, next) {
         const {
             page = req.query.page ?? 1,
@@ -20,6 +67,8 @@ class CandidateController {
             query.electionID = parseInt(req.query.electionID);
         if (req.query.level)
             query.level = req.query.level;
+        if (req.query.group)
+            query.group = req.query.group;
 
         const pageOfNumber = parseInt(page),
             limitOfNumber = parseInt(limit);
@@ -39,7 +88,8 @@ class CandidateController {
             take: limitOfNumber,
             skip: offset,
         })
-            .then(async (users) => {
+            .then(async (data) => {
+
                 const countPages = await Candidate.count(),
                     countWithLevel = await Candidate.count({
                         where: query
@@ -63,7 +113,7 @@ class CandidateController {
                     totalPagesLEVEL: totalPagesLEVEL,
                     totalPagesElection: totalPagesElection,
                     currentPage: currentPage,
-                    data: users,
+                    data: data,
                 })
             }).catch((err) => {
                 next(err);
@@ -186,7 +236,6 @@ class CandidateController {
         const { id } = req.params;
 
         const checkCandidate = await Candidate.findUnique({ where: { candidateID: parseInt(id) } });
-        const rmvFromDir = checkCandidate.candidateAvatar.replace(`${req.protocol}://${req.get('host')}/`, "")
 
         if (!checkCandidate) return res
             .status(404)
@@ -194,23 +243,27 @@ class CandidateController {
                 message: "Candidate Not Found",
                 status: 404
             });
-        else
+
+        else {
+            const rmvFromDir = checkCandidate.candidateAvatar.replace(`${req.protocol}://${req.get('host')}/`, "")
+
             fs.unlink(rmvFromDir, (err) => {
                 console.log(err);
             })
-        await Candidate.delete({
-            where: { candidateID: parseInt(id) }
-        })
-            .then((deletedCandidate) => {
-                return res
-                    .status(200)
-                    .json({
-                        message: "OK",
-                        ststus: 200
-                    })
-            }).catch((err) => {
-                next(err);
-            });
+            await Candidate.delete({
+                where: { candidateID: parseInt(id) }
+            })
+                .then((deletedCandidate) => {
+                    return res
+                        .status(200)
+                        .json({
+                            message: "OK",
+                            ststus: 200
+                        })
+                }).catch((err) => {
+                    next(err);
+                });
+        }
     }
 };
 
