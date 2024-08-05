@@ -154,6 +154,8 @@ class CandidateController {
             candidateMisi: req.body.candidateMisi,
             candidateAvatar: dirPath,
             candidateRole: req.body.candidateRole,
+            candidateFaculty: req.body.candidateFaculty,
+            candidateMajor: req.body.candidateMajor,
             group: req.body.group,
             level: req.body.level,
             createdBy: parseInt(req.body.createdBy),
