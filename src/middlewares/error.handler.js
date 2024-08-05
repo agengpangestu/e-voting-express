@@ -51,7 +51,7 @@ const ErrorHandler = (err, req, res, next) => {
             stack: err.stack
         })
 
-        //this for catch error multer
+    //this for catch error multer
     if (err) {
         return res
             .status(400)
