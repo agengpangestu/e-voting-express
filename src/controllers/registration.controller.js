@@ -1,39 +1,62 @@
 const prisma = require("../database/prisma");
+const { generateTokenPemilih } = require("../middlewares/auth");
 
 const User = prisma.user;
 const IdentityVerif = prisma.identity_Verif;
 
 class RegistrationController {
     async Post(req, res, next) {
-        const body = {
-            identityNumber: req.body.identityNumber,
-            fullName: req.body.fullName
-        };
 
-        await IdentityVerif.findUnique({
-            where: { NoKTP: body.identityNumber }
-        }).then(async (result) => {
+        try {
 
-            if (!result) return res.status(400).json({ message: "Anda tidak terdaftar di pemilihan", status: 400 });
-            if (result.fullName !== body.fullName) return res.json({ message: 'Nama tidak sama', status: 400 });
+            const dirPath = `${req.protocol}://${req.get('host')}/public/images/identity_card_pemilih/${req.file === undefined ? "" : req.file.filename}`;
 
-            await User.findUnique({
-                where: { identityNumber: body.identityNumber, }
-            }).then(async (ifSameData) => {
+            const body = {
+                identityNumber: parseInt(req.body.identityNumber),
+                fullName: req.body.fullName,
+                identityPicture: dirPath
+            };
 
-                if (!ifSameData)
+            if (!body.identityNumber && !body.fullName) return res.status(400).json({ message: "Masukkan Nomor identitas dan Nama!", status: 400 });
+            if (!body.identityNumber) return res.status(400).json({ message: "Masukkan Nomor identitas", status: 400 });
+            if (!body.fullName) return res.status(400).json({ message: "Masukkan Nama", status: 400 });
 
-                    return await User.create({
-                        data: body
-                    }).then((created) => {
-                        res.status(200).json({ message: "OK", status: 201, token: "1234" })
-                    })
-                if (ifSameData.identityNumber === body.identityNumber) return res.status(200).json({ message: "Nomor identitas harus unik", status: 400 })
-
+            await User.create({
+                data: body
             })
-        }).catch((err) => {
+                .then((result) => {
+
+                    let user = [];
+
+                    const arr = Array.of(result)
+
+                    arr.forEach(data => {
+                        user.push({
+                            id: data.id,
+                            nama_pemilih: data.fullName,
+                            nomor_identitas: data.identityNumber,
+                            role: data.role,
+                            createdAt: data.createdAt,
+                            identity_picture: data.identityPicture
+                        })
+                    });
+                    const token = generateTokenPemilih(user);
+
+                    res
+                        .status(200)
+                        .json({
+                            message: "OK",
+                            status: 201,
+                            token: token,
+                            token_expriedIn: 'expired in 5 minutes',
+                            data: user,
+                        })
+                })
+        } catch (err) {
             next(err);
-        })
+        }
+
+
 
         // await User.findUnique({
         //     where: { identityNumber: body.identityNumber }
