@@ -16,17 +16,35 @@ const checkUsername = async (req, res, next) => {
 
     const usernameExist = await User.findUnique({ where: { username: username } })
     const emailExist = await User.findUnique({ where: { email } });
-    const identityNumberExist = await User.findUnique({ where: { identityNumber: identityNumber } })
+    // const identityNumberExist = await User.findUnique({ where: { identityNumber: parseInt(identityNumber) } })
 
     if (usernameExist) {
         return res.status(400).json({ message: "Username telah digunakan", status: 400 })
     } else if (emailExist) {
         return res.status(400).json({ message: "Email telah digunakan", status: 400 })
-    } else if (identityNumberExist) {
-        return res.status(400).json({ message: "Nomor identitas telah digunakan", status: 400 })
-    }
+    } 
+    // else if (identityNumberExist) {
+    //     return res.status(400).json({ message: "Nomor identitas telah digunakan", status: 400 })
+    // }
+    next();
+};
+
+const checkInputData = async (req, res, next) => {
+    const { username, password, email, role, fullName, identityNumber, age } = req.body;
+    console.log(role);
+
+    const parseIdentityNum = parseInt(identityNumber),
+        parseAge = parseInt(age);
+
+    if (!role) return res.status(400).json({ message: "Role harus diisi", status: 400 });
+    if (!email) return res.status(400).json({ message: "Email harus diisi", status: 400 });
+    if (!username) return res.status(400).json({ message: "Username harus diisi", status: 400 });
+    if (!password) return res.status(400).json({ message: "Password harus diisi", status: 400 });
+    if (!fullName) return res.status(400).json({ message: "Nama Lengkap harus diisi", status: 400 });
+    // if (!parseIdentityNum) return res.status(400).json({ message: "Nomor Identitas harus diisi", status: 400 });
+    if (!parseAge) return res.status(400).json({ message: "Umur harus diisi", status: 400 });
     next();
 };
 
 
-module.exports = { checkRole, checkUsername };
+module.exports = { checkRole, checkUsername, checkInputData };
