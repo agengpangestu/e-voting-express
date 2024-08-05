@@ -4,6 +4,7 @@ const VoteHandler = require('../middlewares/vote.handler');
 const router = require('express').Router();
 
 const prisma = require("../database/prisma");
+const { accessAuthentication } = require('../middlewares/auth');
 
 
 const BulkVote = () => {
@@ -28,10 +29,11 @@ const createdBulk = async (howMany) => {
 
 router.get('/', VoteController.Get);
 router.post('/post',
-    VoteHandler.CheckCandidateWhenVoted,
-    VoteHandler.CheckElectionWhenVoted,
-    VoteHandler.checkUserWhenVoted,
+    accessAuthentication,
     VoteHandler.CheckUniqueVoted,
+    VoteHandler.checkUserWhenVoted,
+    // VoteHandler.CheckCandidateWhenVoted,
+    VoteHandler.CheckElectionWhenVoted,
     VoteController.Post);
 
 router.post('/vote-bulk', async (req, res, next) => {
