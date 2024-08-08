@@ -156,6 +156,7 @@ class CandidateController {
             candidateRole: req.body.candidateRole,
             candidateFaculty: req.body.candidateFaculty,
             candidateMajor: req.body.candidateMajor,
+            candidateClass: req.body.candidateClass,
             group: req.body.group,
             level: req.body.level,
             createdBy: parseInt(req.body.createdBy),
