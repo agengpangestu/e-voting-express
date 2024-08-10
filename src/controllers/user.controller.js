@@ -1,7 +1,11 @@
+const fs = require('fs');
+
 const prisma = require("../database/prisma");
 
-const User = prisma.user;
+const bcrypt = require('bcrypt');
 
+const User = prisma.user;
+const salt = 14;
 class UserController {
     async Get(req, res, next) {
         const {
@@ -61,61 +65,36 @@ class UserController {
     };
 
     async Post(req, res, next) {
-        const dirPath = `${req.protocol}://${req.get('host')}/public/images/identityCards/${req.file === undefined ? "" : req.file.filename}`;
-        const body = {
-            username: req.body.username,
-            password: req.body.password,
-            email: req.body.email,
-            role: req.body.role,
-            fullName: req.body.fullName,
-            age: req.body.age,
-            identityNumber: req.body.identityNumber,
-            identityPicture: dirPath
-        };
+        const dirPath = `${req.protocol}://${req.get('host')}/public/images/identity_cards/${req.file === undefined ? "" : req.file.filename}`;
+        const { username, password, email, role, fullName, age, identityNumber } = req.body;
+
+        const generatedSalt = await bcrypt.genSalt(salt);
+
+        const hashPassword = await bcrypt.hash(password, generatedSalt);
 
         await User.create({
-            data: body
+            data: {
+                username: username,
+                password: hashPassword,
+                email: email,
+                role: role,
+                fullName: fullName,
+                age: parseInt(age),
+                identityNumber: parseInt(identityNumber) || null,
+                identityPicture: dirPath
+            }
         })
             .then((created) => {
+                console.log(created);
                 return res
-                    .status(200)
+                    .status(201)
                     .json({
-                        message: "OK",
-                        status: 200
+                        message: "Created",
+                        status: 201
                     })
             }).catch((err) => {
                 next(err);
             });
-
-        // await User.findUnique({
-        //     where: {
-        //         email: req.body.email
-        //     }
-        // }).then(async (emailExist) => {
-        //     if (emailExist) return res
-        //         .status(400)
-        //         .json({
-        //             message: "Email Already Exist",
-        //             status: 400
-        //         })
-
-        //     await User.create({
-        //         data: body
-        //     })
-        //         .then((created) => {
-        //             return res
-        //                 .status(200)
-        //                 .json({
-        //                     message: "OK",
-        //                     status: 200
-        //                 })
-        //         }).catch((err) => {
-        //             console.log(err);
-        //         });
-        // }).catch((err) => {
-        //     next(err);
-        // });
-
     };
 
     async GetByID(req, res, next) {
@@ -143,31 +122,42 @@ class UserController {
 
     async Update(req, res, next) {
         const { id } = req.params;
+        const { username, password, email, role, fullName, age, identityNumber, newPassword } = req.body;
+        const dirPath = `${req.protocol}://${req.get('host')}/public/images/identity_cards/${req.file === undefined ? "" : req.file.filename}`;
+
+        let identityPicture = null;
 
         const checkUser = await User.findUnique({
             where: { id: parseInt(id) }
-        })
+        });
+
         if (!checkUser) return res
             .status(404)
             .json({
-                message: "User Not Found", status: 404
+                message: "User Not Found",
+                status: 404
+            });
+
+        if (req.file) {
+            identityPicture = dirPath;
+            const rmvFromDir = checkUser.identityPicture.replace(`${req.protocol}://${req.get('host')}/`, "");
+            fs.unlink(rmvFromDir, (err) => {
+                console.log(err);
             })
-
-        const body = {
-            username: req.body.username,
-            password: req.body.password,
-            email: req.body.email,
-            role: req.body.role,
-            fullName: req.body.fullName,
-            age: req.body.age,
-            identityNumber: req.body.identityNumber,
-            identityPicture: req.body.identityPicture
+        } else {
+            identityPicture = checkUser.identityPicture;
         };
-
         await User.update({
             where: {
                 id: parseInt(id)
-            }, data: body
+            }, data: {
+                email: email,
+                role: role,
+                fullName: fullName,
+                age: parseInt(age),
+                identityNumber: parseInt(identityNumber),
+                identityPicture: identityPicture
+            }
         })
             .then((updated) => {
 
@@ -179,25 +169,31 @@ class UserController {
             }).catch((err) => {
                 next(err);
             });
-    };
+    }
 
     async Deleted(req, res, next) {
         const { id } = req.params;
 
-        const checkUser = await User.findUnique({ where: { id: parseInt(id) } })
+        const checkUser = await User.findUnique({ where: { id: parseInt(id) } });
+        const rmvFromDir = checkUser.identityPicture.replace(`${req.protocol}://${req.get('host')}/`, "");
+
         if (!checkUser) return res
             .status(404)
             .json({
                 message: "User Not Found",
                 status: 404
             });
-
-        return await User.delete({
+        else
+            fs.unlink(rmvFromDir, (err) => {
+                console.log(err);
+            });
+        await User.delete({
             where: { id: parseInt(id) }
         })
             .then((result) => {
-                return res.status(200).json({ message: "OK", data: result })
+                return res.status(200).json({ message: "OK", status: 200 })
             }).catch((err) => {
+                console.log(err);
                 next(err);
             });
     };
